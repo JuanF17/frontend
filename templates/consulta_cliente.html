@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}ISIS Mobile - Consulta Cliente{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Consulta de Cliente</h1>
+    
+    <div class="search-section">
+        <div class="search-form">
+            <input type="text" id="dni-search" placeholder="Ingrese DNI del cliente">
+            <button onclick="buscarCliente()">Buscar</button>
+        </div>
+    </div>
+
+    <div id="no-results" class="no-results" style="display: none;">
+        No se encontró ningún cliente con ese DNI.
+    </div>
+
+    <div id="client-info" class="client-info" style="display: none;">
+        <div class="info-section">
+            <h3>Información del Cliente</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Nombre:</strong>
+                    <span id="cliente-nombre"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Apellido:</strong>
+                    <span id="cliente-apellido"></span>
+                </div>
+                <div class="info-item">
+                    <strong>DNI:</strong>
+                    <span id="cliente-dni"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Email:</strong>
+                    <span id="cliente-email"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Teléfono:</strong>
+                    <span id="cliente-telefono"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Dirección:</strong>
+                    <span id="cliente-direccion"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>Créditos Activos</h3>
+            <table class="credits-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Celular</th>
+                        <th>Monto</th>
+                        <th>Plazo</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody id="creditos-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function buscarCliente() {
+        const dni = document.getElementById('dni-search').value;
+        if (!dni) {
+            alert('Por favor ingrese un DNI');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/clientes/buscar/${dni}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Error al buscar cliente');
+            }
+
+            // Mostrar información del cliente
+            document.getElementById('cliente-nombre').textContent = data.cliente.nombre;
+            document.getElementById('cliente-apellido').textContent = data.cliente.apellido;
+            document.getElementById('cliente-dni').textContent = data.cliente.dni;
+            document.getElementById('cliente-email').textContent = data.cliente.email;
+            document.getElementById('cliente-telefono').textContent = data.cliente.telefono;
+            document.getElementById('cliente-direccion').textContent = data.cliente.direccion;
+
+            // Mostrar créditos activos
+            const creditosBody = document.getElementById('creditos-body');
+            creditosBody.innerHTML = '';
+            
+            data.creditos.forEach(credito => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${credito.id}</td>
+                    <td>${credito.celular.marca} ${credito.celular.modelo}</td>
+                    <td>$${credito.monto.toFixed(2)}</td>
+                    <td>${credito.plazo_meses} meses</td>
+                    <td>${credito.estado}</td>
+                    <td>${credito.fecha_solicitud}</td>
+                `;
+                creditosBody.appendChild(row);
+            });
+
+            document.getElementById('client-info').style.display = 'block';
+            document.getElementById('no-results').style.display = 'none';
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('client-info').style.display = 'none';
+            document.getElementById('no-results').style.display = 'block';
+        }
+    }
+</script>
+{% endblock %} 

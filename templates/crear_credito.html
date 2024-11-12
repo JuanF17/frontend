@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}ISIS Mobile - Crear Crédito{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Crear Nuevo Crédito</h1>
+    
+    <!-- Sección de búsqueda de cliente -->
+    <div class="search-section">
+        <div class="form-group">
+            <label for="dni-search">DNI del Cliente:</label>
+            <input type="text" id="dni-search" placeholder="Ingrese DNI del cliente">
+            <button onclick="buscarCliente()">Buscar Cliente</button>
+        </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div id="error-message" class="error-message" style="display: none;">
+        No se encontró ningún cliente con ese DNI.
+    </div>
+
+    <!-- Formulario de crédito (inicialmente oculto) -->
+    <div id="form-section" class="form-section" style="display: none;">
+        <!-- Información del cliente -->
+        <div class="client-info">
+            <h3>Información del Cliente</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <strong>Nombre:</strong>
+                    <span id="cliente-nombre"></span>
+                </div>
+                <div class="info-item">
+                    <strong>Apellido:</strong>
+                    <span id="cliente-apellido"></span>
+                </div>
+                <div class="info-item">
+                    <strong>DNI:</strong>
+                    <span id="cliente-dni"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de crédito -->
+        <form id="credito-form">
+            <input type="hidden" id="cliente-id" name="cliente_id">
+            
+            <div class="form-group">
+                <label for="celular_id">Celular:</label>
+                <select id="celular_id" name="celular_id" required onchange="calcularCuota()">
+                    <option value="">Seleccione un celular</option>
+                    {% for celular in celulares %}
+                    <option value="{{ celular.id }}" data-precio="{{ celular.precio }}">
+                        {{ celular.marca }} {{ celular.modelo }} - ${{ "%.2f"|format(celular.precio) }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="plazo_meses">Plazo (meses):</label>
+                <select id="plazo_meses" name="plazo_meses" required onchange="calcularCuota()">
+                    <option value="12">12 meses</option>
+                    <option value="18">18 meses</option>
+                    <option value="24">24 meses</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="cuota_mensual">Cuota Mensual Estimada:</label>
+                <input type="text" id="cuota_mensual" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="ingreso_mensual">Ingreso Mensual ($):</label>
+                <input type="number" id="ingreso_mensual" name="ingreso_mensual" step="0.01" required min="0">
+            </div>
+
+            <button type="submit">Crear Solicitud</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    async function buscarCliente() {
+        const dni = document.getElementById('dni-search').value;
+        if (!dni) {
+            alert('Por favor ingrese un DNI');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/clientes/buscar/${dni}`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.detail || 'Error al buscar cliente');
+            }
+
+            // Mostrar información del cliente
+            document.getElementById('cliente-nombre').textContent = data.cliente.nombre;
+            document.getElementById('cliente-apellido').textContent = data.cliente.apellido;
+            document.getElementById('cliente-dni').textContent = data.cliente.dni;
+            document.getElementById('cliente-id').value = data.cliente.id;
+
+            // Mostrar formulario y ocultar mensaje de error
+            document.getElementById('form-section').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('error-message').style.display = 'block';
+        }
+    }
+
+    function calcularCuota() {
+        const celularSelect = document.getElementById('celular_id');
+        const plazoSelect = document.getElementById('plazo_meses');
+        const cuotaInput = document.getElementById('cuota_mensual');
+
+        if (celularSelect.value && plazoSelect.value) {
+            const precio = parseFloat(celularSelect.selectedOptions[0].dataset.precio);
+            const plazo = parseInt(plazoSelect.value);
+            const cuota = precio / plazo;
+            cuotaInput.value = `$${cuota.toFixed(2)}`;
+        }
+    }
+
+    document.getElementById('credito-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const data = {
+            cliente_id: parseInt(document.getElementById('cliente-id').value),
+            celular_id: parseInt(document.getElementById('celular_id').value),
+            plazo_meses: parseInt(document.getElementById('plazo_meses').value),
+            ingreso_mensual: parseFloat(document.getElementById('ingreso_mensual').value),
+            estado: 'pendiente'
+        };
+
+        console.log('Intentando enviar datos:', data);
+        
+        try {
+            const response = await fetch('/api/solicitudes/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Error al crear la solicitud');
+            }
+
+            alert('Solicitud creada correctamente. Será redirigido al panel de administración.');
+            window.location.href = '/admin';
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al crear la solicitud: ' + error.message);
+        }
+    });
+</script>
+{% endblock %} 

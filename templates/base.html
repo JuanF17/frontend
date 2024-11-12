@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ISIS Mobile{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/menu.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Menú Principal -->
+    <div class="main-menu">
+        <div class="menu-container">
+            <a href="/" class="logo">ISIS Mobile</a>
+            <nav class="nav-links">
+                <a href="/" {% if request.url.path == "/" %}class="active"{% endif %}>Inicio</a>
+                <a href="/consulta-cliente" {% if request.url.path == "/consulta-cliente" %}class="active"{% endif %}>Consultar Cliente</a>
+                <a href="/registro-cliente" {% if request.url.path == "/registro-cliente" %}class="active"{% endif %}>Registrar Cliente</a>
+                <a href="/crear-credito" {% if request.url.path == "/crear-credito" %}class="active"{% endif %}>Crear Crédito</a>
+                <a href="/pagos" {% if request.url.path == "/pagos" %}class="active"{% endif %}>Gestión de Pagos</a>
+                <a href="/admin" {% if request.url.path == "/admin" %}class="active"{% endif %}>Panel Admin</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Contenido específico de cada página -->
+    {% block content %}{% endblock %}
+
+    <!-- Scripts comunes -->
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

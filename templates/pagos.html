@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}ISIS Mobile - Gestión de Pagos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Gestión de Pagos</h1>
+    
+    <div class="search-section">
+        <div class="form-group">
+            <label for="dni-search">DNI del Cliente:</label>
+            <input type="text" id="dni-search" placeholder="Ingrese DNI del cliente">
+            <button onclick="buscarPagosCliente()">Buscar</button>
+        </div>
+    </div>
+
+    <div id="error-message" class="error-message" style="display: none;">
+        No se encontró ningún cliente con ese DNI.
+    </div>
+
+    <div id="client-info" class="client-info" style="display: none;">
+        <h3>Información del Cliente</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Nombre:</strong>
+                <span id="cliente-nombre"></span>
+            </div>
+            <div class="info-item">
+                <strong>DNI:</strong>
+                <span id="cliente-dni"></span>
+            </div>
+        </div>
+
+        <div id="creditos-section" class="creditos-section">
+            <h3>Créditos Activos</h3>
+            <div id="creditos-container">
+                <!-- Los créditos se insertarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function buscarPagosCliente() {
+    const dni = document.getElementById('dni-search').value;
+    if (!dni) {
+        alert('Por favor ingrese un DNI');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/pagos/cliente/${dni}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || 'Error al buscar cliente');
+        }
+
+        // Mostrar información del cliente
+        document.getElementById('cliente-nombre').textContent = data.cliente.nombre;
+        document.getElementById('cliente-dni').textContent = data.cliente.dni;
+
+        // Mostrar créditos y pagos
+        const creditosContainer = document.getElementById('creditos-container');
+        creditosContainer.innerHTML = '';
+
+        data.creditos.forEach(credito => {
+            const creditoElement = document.createElement('div');
+            creditoElement.className = 'credito-card';
+            creditoElement.innerHTML = `
+                <h4>Crédito #${credito.solicitud_id} - ${credito.celular}</h4>
+                <div class="credito-info">
+                    <p>Monto Total: $${credito.monto_total.toFixed(2)}</p>
+                    <p>Cuota Mensual: $${credito.cuota_mensual.toFixed(2)}</p>
+                    <p>Plazo Total: ${credito.plazo_total} meses</p>
+                    <p>Cuotas Pagadas: ${credito.cuotas_pagadas}</p>
+                    <p>Cuotas Restantes: ${credito.cuotas_restantes}</p>
+                </div>
+                ${credito.cuotas_restantes > 0 ? `
+                    <button onclick="realizarPago(${credito.solicitud_id})">
+                        Realizar Pago
+                    </button>
+                ` : '<span class="credito-completado">Crédito Completado</span>'}
+                <div class="pagos-historial">
+                    <h5>Historial de Pagos</h5>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cuota</th>
+                                <th>Monto</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${credito.pagos.map(pago => `
+                                <tr>
+                                    <td>${pago.numero_cuota}</td>
+                                    <td>$${pago.monto.toFixed(2)}</td>
+                                    <td>${new Date(pago.fecha).toLocaleDateString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            creditosContainer.appendChild(creditoElement);
+        });
+
+        document.getElementById('client-info').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('client-info').style.display = 'none';
+        document.getElementById('error-message').style.display = 'block';
+    }
+}
+
+async function realizarPago(solicitudId) {
+    if (!confirm('¿Está seguro de realizar el pago?')) return;
+
+    try {
+        const response = await fetch(`/api/pagos/realizar/${solicitudId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || 'Error al realizar el pago');
+        }
+
+        alert('Pago realizado correctamente');
+        // Recargar la información del cliente
+        buscarPagosCliente();
+
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al realizar el pago: ' + error.message);
+    }
+}
+</script>
+
+<style>
+.credito-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.credito-info {
+    margin: 15px 0;
+}
+
+.pagos-historial {
+    margin-top: 15px;
+}
+
+.credito-completado {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.credito-card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.credito-card button:hover {
+    background-color: #0056b3;
+}
+</style>
+{% endblock %} 

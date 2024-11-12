@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - ISIS Mobile</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(180deg, #e3f2fd 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        /* Estilos para el menú principal */
+        .main-menu {
+            background: linear-gradient(90deg, #1976d2 0%, #2196f3 100%);
+            padding: 15px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-links a.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        /* Estilos para el contenido principal */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .admin-container h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Estilos para las secciones de tablas */
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .table-container h2 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+
+        /* Estilos para las tablas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background-color: white;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Estilos para los botones */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        button.add-btn {
+            background-color: #28a745;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        button.edit-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        button.delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Estilos para el modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 25px;
+            width: 70%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        /* Estilos para el scrollbar */
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Estilos para los formularios */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+
+        /* Estilos para mensajes de estado */
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pendiente {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .status-aprobado {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-rechazado {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .status-en-revision {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .section-container {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menú Principal -->
+    <div class="main-menu">
+        <div class="menu-container">
+            <a href="/" class="logo">ISIS Mobile</a>
+            <nav class="nav-links">
+                <a href="/">Inicio</a>
+                <a href="/consulta-cliente">Consultar Cliente</a>
+                <a href="/registro-cliente">Registrar Cliente</a>
+                <a href="/crear-credito">Crear Crédito</a>
+                <a href="/admin" class="active">Panel Admin</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <h1>Panel de Administración - ISIS Mobile</h1>
+        
+        <!-- Menú de navegación interno -->
+        <div class="admin-nav">
+            <button class="nav-btn active" onclick="showSection('celulares')">Celulares</button>
+            <button class="nav-btn" onclick="showSection('clientes')">Clientes</button>
+            <button class="nav-btn" onclick="showSection('solicitudes')">Solicitudes</button>
+        </div>
+
+        <!-- Sección de Celulares -->
+        <div id="celulares-section" class="section-container">
+            <div class="table-container">
+                <h2>Gestión de Celulares</h2>
+                <button onclick="showAddModal()" class="add-btn">Agregar Nuevo Celular</button>
+                <table id="celulares-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Pantalla</th>
+                            <th>Procesador</th>
+                            <th>RAM</th>
+                            <th>Almacenamiento</th>
+                            <th>Cámara</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for celular in celulares %}
+                        <tr data-id="{{ celular.id }}">
+                            <td>{{ celular.id }}</td>
+                            <td>{{ celular.marca }}</td>
+                            <td>{{ celular.modelo }}</td>
+                            <td>${{ "%.2f"|format(celular.precio) }}</td>
+                            <td>{{ celular.stock }}</td>
+                            <td>{{ celular.pantalla }}</td>
+                            <td>{{ celular.procesador }}</td>
+                            <td>{{ celular.ram }}</td>
+                            <td>{{ celular.almacenamiento }}</td>
+                            <td>{{ celular.camara }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editarCelular('{{ celular.id }}')">Editar</button>
+                                <button class="delete-btn" onclick="eliminarCelular('{{ celular.id }}')">Eliminar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección de Clientes -->
+        <div id="clientes-section" class="section-container" style="display: none;">
+            <div class="table-container">
+                <h2>Gestión de Clientes</h2>
+                <button onclick="showAddClienteModal()" class="add-btn">Agregar Nuevo Cliente</button>
+                <table id="clientes-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>DNI</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Historial Crediticio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in clientes %}
+                        <tr data-id="{{ cliente.id }}">
+                            <td>{{ cliente.id }}</td>
+                            <td>{{ cliente.nombre }}</td>
+                            <td>{{ cliente.apellido }}</td>
+                            <td>{{ cliente.dni }}</td>
+                            <td>{{ cliente.email }}</td>
+                            <td>{{ cliente.telefono }}</td>
+                            <td>{{ cliente.direccion }}</td>
+                            <td>{{ "%.2f"|format(cliente.historial_crediticio) if cliente.historial_crediticio else "N/A" }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editarCliente('{{ cliente.id }}')">Editar</button>
+                                <button class="delete-btn" onclick="eliminarCliente('{{ cliente.id }}')">Eliminar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección de Solicitudes -->
+        <div id="solicitudes-section" class="section-container" style="display: none;">
+            <div class="table-container">
+                <h2>Solicitudes de Crédito</h2>
+                <button onclick="showAddSolicitudModal()" class="add-btn">Nueva Solicitud de Crédito</button>
+                <table id="solicitudes-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Celular</th>
+                            <th>Plazo (meses)</th>
+                            <th>Ingreso Mensual</th>
+                            <th>Estado</th>
+                            <th>Fecha Solicitud</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for solicitud in solicitudes %}
+                        <tr data-id="{{ solicitud.id }}" data-cliente-id="{{ solicitud.cliente_id }}" data-celular-id="{{ solicitud.celular_id }}">
+                            <td>{{ solicitud.id }}</td>
+                            <td>{{ solicitud.cliente.nombre }} {{ solicitud.cliente.apellido }}</td>
+                            <td>{{ solicitud.celular.marca }} {{ solicitud.celular.modelo }}</td>
+                            <td>{{ solicitud.plazo_meses }}</td>
+                            <td>${{ "%.2f"|format(solicitud.ingreso_mensual) }}</td>
+                            <td>{{ solicitud.estado }}</td>
+                            <td>{{ solicitud.fecha_solicitud.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td class="action-buttons">
+                                <button class="edit-btn" onclick="editarSolicitud('{{ solicitud.id }}')">Editar</button>
+                                <button class="delete-btn" onclick="eliminarSolicitud('{{ solicitud.id }}')">Eliminar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar celular -->
+    <div id="celularModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Agregar Celular</h2>
+            <form id="celularForm">
+                <input type="hidden" id="celular-id">
+                <div class="form-group">
+                    <label for="marca">Marca:</label>
+                    <input type="text" id="marca" required>
+                </div>
+                <div class="form-group">
+                    <label for="modelo">Modelo:</label>
+                    <input type="text" id="modelo" required>
+                </div>
+                <div class="form-group">
+                    <label for="precio">Precio:</label>
+                    <input type="number" id="precio" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="stock">Stock:</label>
+                    <input type="number" id="stock" required>
+                </div>
+                <div class="form-group">
+                    <label for="pantalla">Pantalla:</label>
+                    <input type="text" id="pantalla" required>
+                </div>
+                <div class="form-group">
+                    <label for="procesador">Procesador:</label>
+                    <input type="text" id="procesador" required>
+                </div>
+                <div class="form-group">
+                    <label for="ram">RAM:</label>
+                    <input type="text" id="ram" required>
+                </div>
+                <div class="form-group">
+                    <label for="almacenamiento">Almacenamiento:</label>
+                    <input type="text" id="almacenamiento" required>
+                </div>
+                <div class="form-group">
+                    <label for="camara">Cámara:</label>
+                    <input type="text" id="camara" required>
+                </div>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="closeModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar cliente -->
+    <div id="clienteModal" class="modal">
+        <div class="modal-content">
+            <h2 id="clienteModalTitle">Agregar Cliente</h2>
+            <form id="clienteForm">
+                <input type="hidden" id="cliente-id">
+                <div class="form-group">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido:</label>
+                    <input type="text" id="apellido" required>
+                </div>
+                <div class="form-group">
+                    <label for="dni">DNI:</label>
+                    <input type="text" id="dni" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="text" id="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion">Dirección:</label>
+                    <input type="text" id="direccion" required>
+                </div>
+                <div class="form-group">
+                    <label for="historial_crediticio">Historial Crediticio:</label>
+                    <input type="number" id="historial_crediticio" step="0.01" min="0" max="1">
+                </div>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="closeClienteModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar solicitud -->
+    <div id="solicitudModal" class="modal">
+        <div class="modal-content">
+            <h2 id="solicitudModalTitle">Nueva Solicitud de Crédito</h2>
+            <form id="solicitudForm">
+                <input type="hidden" id="solicitud-id">
+                <div class="form-group">
+                    <label for="cliente_id">Cliente:</label>
+                    <select id="cliente_id" required>
+                        {% for cliente in clientes %}
+                        <option value="{{ cliente.id }}">{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="celular_id">Celular:</label>
+                    <select id="celular_id" required>
+                        {% for celular in celulares %}
+                        <option value="{{ celular.id }}">{{ celular.marca }} {{ celular.modelo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="plazo_meses">Plazo (meses):</label>
+                    <select id="plazo_meses" required>
+                        <option value="12">12 meses</option>
+                        <option value="18">18 meses</option>
+                        <option value="24">24 meses</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso_mensual">Ingreso Mensual:</label>
+                    <input type="number" id="ingreso_mensual" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="estado">Estado:</label>
+                    <select id="estado" required>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                        <option value="en_revision">En Revisión</option>
+                    </select>
+                </div>
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="closeSolicitudModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        function showSection(sectionName) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section-container').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Mostrar la sección seleccionada
+            document.getElementById(`${sectionName}-section`).style.display = 'block';
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Mostrar la sección de celulares por defecto
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('celulares');
+        });
+    </script>
+</body>
+</html> 
